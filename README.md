@@ -2,9 +2,9 @@
 
 Trustline audits the external trust boundary in a codebase. It inventories outside hostnames and storage URLs, gathers registration and availability evidence, and ranks what deserves a closer look.
 
-The repository includes a static GitHub Pages product site and a Python command-line scanner. The site is a realistic, interactive sample dashboard. Run the scanner locally for a live audit; a static Pages site cannot safely hold a model API key or perform server-side repository scans.
+The repository includes a static GitHub Pages site and a Python command-line scanner. The site opens with one public website link field and returns a report of DNS, CAA, DMARC, RDAP registration, and HTTPS signals, with direct links to certificate transparency and archived-history records. No terminal or sign-in is required to check a public site.
 
-You can also use **Check a website** on the hosted site without installing or running anything. Enter a public domain to review DNS addresses, CAA certificate policy, DMARC, RDAP registration data, certificate transparency names, and whether the browser can establish an HTTPS connection. The hosted check reviews public domain signals only; browser cross-origin protections prevent a static site from crawling another website's pages or source files.
+A public website URL does not expose its source code, API configuration, private pages, or deployment files. The hosted report therefore checks public domain signals; it cannot inventory code references like the repository scanner. Use the CLI below to scan a local codebase for references with file context, storage URLs, and deployment configuration.
 
 ## Run a live scan
 
@@ -39,7 +39,7 @@ The integration uses the Meta Model API's OpenAI-compatible chat completions end
 
 The site is in the repository root. To publish it, create a GitHub repository and push this folder, then go to **Settings → Pages** and select **GitHub Actions** as the source. The included workflow publishes the site on pushes to `main`.
 
-The dashboard includes sample findings to show the report design. It does not imply that the displayed example scan was run against your repository. The **Run new scan** button explains how to run a real local scan.
+The hosted site starts with a website link form and opens a detailed report after a check. It uses browser-accessible public lookups and links directly to certificate transparency and Wayback history; cross-origin browser restrictions limit which external services can return data directly to the report.
 
 ## What the scanner checks
 
