@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f4ef">
-  <meta name="description" content="Check a public website for domain, DNS, certificate policy, email security, and HTTPS signals.">
-  <title>Trustline — Check what your website trusts</title>
+  <meta name="description" content="Audit the external trust boundary of a public code repository.">
+  <title>Trustline — External trust boundary audit</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,56 +15,40 @@
   <div class="site-app">
     <header class="site-header">
       <a class="brand" href="#top" aria-label="Trustline home"><span class="brand-mark"><i></i><i></i><i></i></span><span>trustline</span></a>
-      <span class="header-note"><i></i> PUBLIC WEBSITE CHECK</span>
+      <span class="header-note"><i></i> CODEBASE TRUST AUDIT</span>
     </header>
-
     <main id="top">
       <section class="landing" id="landing">
         <div class="landing-copy">
-          <div class="eyebrow"><span class="eyebrow-line"></span>EXTERNAL TRUST AUDIT</div>
-          <h1>What does your website <em>trust?</em></h1>
-          <p>Enter a public website link. Trustline checks its domain, DNS, registration, email policy, certificate policy, and HTTPS signals, then explains what deserves a closer look.</p>
+          <div class="eyebrow"><span class="eyebrow-line"></span>EXTERNAL TRUST BOUNDARY</div>
+          <h1>Know what your code <em>trusts.</em></h1>
+          <p>Enter a public GitHub repository. Trustline finds outside domains and storage references across source, configuration, workflows, containers, and documentation, then investigates their ownership and risk.</p>
         </div>
         <form id="scanForm" class="scan-form">
-          <label for="websiteUrl">Website link</label>
+          <label for="repoUrl">Public GitHub repository</label>
           <div class="scan-input-row">
             <span class="url-icon" aria-hidden="true">↗</span>
-            <input id="websiteUrl" name="websiteUrl" type="text" inputmode="url" autocomplete="url" placeholder="https://yourwebsite.com" required>
-            <button class="scan-button" type="submit"><span>Check website</span><b aria-hidden="true">↗</b></button>
+            <input id="repoUrl" name="repoUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://github.com/owner/repository" required>
+            <button class="scan-button" type="submit"><span>Audit repository</span><b aria-hidden="true">↗</b></button>
           </div>
-          <div class="scan-help"><span>◎</span> Public domain checks · No sign-in or terminal required</div>
+          <div class="scan-help"><span>◎</span> Public repositories · No terminal or sign-in required</div>
           <p class="form-error" id="formError" role="alert" hidden></p>
         </form>
-        <div class="landing-footer"><span>DOMAIN OWNERSHIP</span><span>DNS HEALTH</span><span>EMAIL &amp; CERTIFICATE POLICY</span><span>HTTPS</span></div>
+        <div class="landing-footer"><span>REPOSITORY INVENTORY</span><span>LIVE OWNERSHIP SIGNALS</span><span>RANKED RISK &amp; FIXES</span></div>
       </section>
-
       <section class="report" id="report" hidden aria-live="polite">
-        <div class="report-nav"><button class="back-button" id="backButton" type="button">← <span>Check another website</span></button><span class="report-label"><i></i> PUBLIC WEBSITE REPORT</span></div>
-        <div class="report-title-row">
-          <div><div class="eyebrow"><span class="eyebrow-line"></span>WEBSITE OVERVIEW</div><h1 id="reportDomain">—</h1><a id="reportUrl" class="report-url" href="#" target="_blank" rel="noreferrer"></a></div>
-          <div class="report-time"><span>CHECKED</span><b id="checkedAt">—</b></div>
-        </div>
-
-        <div class="overview-banner" id="overviewBanner"><span class="overview-icon" id="overviewIcon">◎</span><div><b id="overviewTitle">Checking public signals…</b><p id="overviewText">Looking up domain registration, DNS, and website connection data.</p></div></div>
-
-        <div class="signal-grid" id="signalGrid" aria-label="Website signal summary"></div>
-
-        <section class="findings-block">
-          <div class="section-head"><div><div class="eyebrow"><span class="eyebrow-line"></span>WHAT NEEDS ATTENTION</div><h2>Findings <span id="findingCount">0</span></h2></div><span class="rank-note">Ranked by potential impact</span></div>
-          <div id="findingList" class="finding-list"><div class="loading-line"><i></i><span>Checking this website…</span></div></div>
-        </section>
-
-        <section class="evidence-block">
-          <div class="section-head"><div><div class="eyebrow"><span class="eyebrow-line"></span>DETERMINISTIC LOOKUPS</div><h2>Evidence &amp; public history</h2></div><span class="evidence-caption">Facts are separated from assessment</span></div>
-          <div class="evidence-grid" id="evidenceGrid"></div>
-        </section>
-
-        <aside class="scope-note"><span>i</span><p><b>What this report can see:</b> public domain records and whether a browser can connect to the website. A live website link does not expose its source code, private pages, API configuration, or deployment files, so this report cannot inventory code references like a repository scan.</p></aside>
+        <div class="report-nav"><button class="back-button" id="backButton" type="button">← <span>Audit another repository</span></button><span class="report-label"><i></i> TRUST BOUNDARY REPORT</span></div>
+        <div class="report-title-row"><div><div class="eyebrow"><span class="eyebrow-line"></span>REPOSITORY OVERVIEW</div><h1 id="reportDomain">—</h1><a id="reportUrl" class="report-url" href="#" target="_blank" rel="noreferrer"></a></div><div class="report-time"><span>CHECKED</span><b id="checkedAt">—</b></div></div>
+        <div class="overview-banner" id="overviewBanner"><span class="overview-icon" id="overviewIcon">◎</span><div><b id="overviewTitle">Scanning repository…</b><p id="overviewText">Extracting external references.</p></div></div>
+        <div class="signal-grid" id="signalGrid" aria-label="Repository scan summary"></div>
+        <section class="findings-block"><div class="section-head"><div><div class="eyebrow"><span class="eyebrow-line"></span>PRIORITIZED REVIEW</div><h2>External references <span id="findingCount">0</span></h2></div><span class="rank-note">Ranked by blast radius and evidence</span></div><div id="findingList" class="finding-list"><div class="loading-line"><i></i><span>Reading public repository files…</span></div></div></section>
+        <section class="evidence-block"><div class="section-head"><div><div class="eyebrow"><span class="eyebrow-line"></span>OBSERVED FACTS</div><h2>Ownership &amp; infrastructure evidence</h2></div><span class="evidence-caption">Evidence kept separate from risk judgment</span></div><div class="evidence-grid" id="evidenceGrid"></div></section>
+        <aside class="scope-note"><span>i</span><p id="scopeText"><b>Scope:</b> Public files and point-in-time records.</p></aside>
       </section>
     </main>
-
     <footer class="site-footer"><span>TRUSTLINE <span>·</span> EVIDENCE, NOT GUESSES</span><a href="https://github.com/matthewL687/trustline" target="_blank" rel="noreferrer">View repository ↗</a></footer>
   </div>
-  <script src="app.js?v=3"></script>
+  <script src="site-config.js"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

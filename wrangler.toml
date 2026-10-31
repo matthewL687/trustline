@@ -1,0 +1,9 @@
+name = "trustline-api"
+main = "trustline-worker.js"
+compatibility_date = "2026-10-31"
+
+[vars]
+ALLOWED_ORIGIN = "https://matthewl687.github.io"
+
+# Optional model review key is configured as a Worker secret:
+# npx wrangler secret put META_MODEL_API_KEY
