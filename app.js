@@ -66,7 +66,7 @@ function refsFromFiles(files) {
         const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
         if (!host.includes(".") || ["example.com", "example.org", "example.net", "localhost"].includes(host) || host.split(".").includes("example") || PUBLIC_SUFFIXES.has(host) || /\.(png|jpg|jpeg|gif|svg|webp|woff2?)$/i.test(host)) continue;
         if (!raw.includes("://") && !PUBLIC_TLDS.has(host.split(".").at(-1))) continue;
-        if (!raw.includes("://") && text[endAt] === "(") continue;
+        if (!raw.includes("://") && /[(_$a-z0-9]/i.test(text[endAt] || "")) continue;
         const line = text.slice(0, startAt).split("\n").length;
         const key = `${host}\n${file.path}`;
         const before = text.slice(Math.max(0, startAt - 180), startAt);
