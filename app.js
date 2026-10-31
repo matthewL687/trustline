@@ -10,7 +10,8 @@ const formError = document.querySelector("#formError");
 const MAX_FILES = 220;
 const MAX_BYTES = 1_200_000;
 const SKIP = new Set([".git", "node_modules", "vendor", "dist", "build", ".next", "coverage", "target"]);
-const PUBLIC_TLDS = new Set(("com org net edu gov mil int io ai dev app tech xyz info biz me co us uk ca au nz jp de fr es it nl se no fi ch at ru cn in br za tv cloud online site store blog museum aero name pro mobi travel jobs cat asia tel xxx post zip mov music live world design software digital company agency network systems security services solutions academy exchange finance consulting photography media email website today space fun club life news group center studio codes tools support sh io ly gg fm cc ws me ac io gov.uk co.uk org.uk ac.uk com.au net.au org.au co.nz co.jp com.br com.cn com.sg com.mx co.in github") .split(" "));
+const PUBLIC_TLDS = new Set(("com org net edu gov mil int io ai dev app tech xyz info biz me co us uk ca au nz jp de fr es it nl se no fi ch at ru cn in br za tv cloud online site store blog museum aero name pro mobi travel jobs cat asia tel xxx post zip mov music live world design software digital company agency network systems security services solutions academy exchange finance consulting photography media email website today space fun club life news group center studio codes tools support ly gg fm cc ws ac") .split(" "));
+const PUBLIC_SUFFIXES = new Set(["co.uk", "org.uk", "ac.uk", "gov.uk", "com.au", "net.au", "org.au", "co.nz", "co.jp", "com.br", "com.cn", "com.sg", "com.mx", "co.in"]);
 const URL_RE = /\b(?:https?:\/\/|s3:\/\/|gs:\/\/)[^\s"'<>`\])}]+/gi;
 const HOST_RE = /(?<![@\w.-])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}(?::\d+)?(?:\/[^\s"'<>`]*)?/gi;
 
@@ -29,9 +30,10 @@ async function fetchJson(url) {
 }
 function classify(path, context, url) {
   const text = `${path} ${context} ${url}`.toLowerCase();
-  if (/<script|\.js(?:\?|$)|script[_-]?src/.test(text)) return "Browser script";
-  if (/<link|\.css(?:\?|$)|stylesheet|font/.test(text)) return "Browser asset";
-  if (/s3:\/\/|storage\.googleapis|\.s3[.-]|bucket/.test(text)) return "Cloud storage";
+  let host = ""; try { host = new URL(url).hostname.toLowerCase(); } catch {}
+  if (/^(?:s3|gs):\/\//i.test(url) || host === "storage.googleapis.com" || /(?:^|\.)s3[.-]|\.s3\.amazonaws\.com$/.test(host) || /\b(?:s3_bucket|bucket_name|storage_bucket)\b/i.test(context)) return "Cloud storage";
+  if (/<script\b|script[_-]?src/i.test(context) || (/\bsrc\s*=/i.test(context) && /\.js(?:[?#]|$)/i.test(url))) return "Browser script";
+  if (/<(?:link|img|source)\b|\b(?:href|src)\s*=/i.test(context) || /fonts\./i.test(host) || (/\.css(?:[?#]|$)/i.test(url) && /stylesheet/i.test(context))) return "Browser asset";
   if (/webhook|callback|notify_url/.test(text)) return "Webhook";
   if (/dockerfile|workflow|deploy|terraform|ansible|\.ya?ml/.test(text)) return "Build / deploy";
   if (/readme|docs\/|documentation|changelog|\.md\b/.test(text)) return "Documentation";
@@ -62,8 +64,9 @@ function refsFromFiles(files) {
         let parsed;
         try { parsed = new URL(normalized); } catch { continue; }
         const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
-        if (!host.includes(".") || ["example.com", "example.org", "example.net", "localhost"].includes(host) || /\.(png|jpg|jpeg|gif|svg|webp|woff2?)$/i.test(host)) continue;
+        if (!host.includes(".") || ["example.com", "example.org", "example.net", "localhost"].includes(host) || host.split(".").includes("example") || PUBLIC_SUFFIXES.has(host) || /\.(png|jpg|jpeg|gif|svg|webp|woff2?)$/i.test(host)) continue;
         if (!raw.includes("://") && !PUBLIC_TLDS.has(host.split(".").at(-1))) continue;
+        if (!raw.includes("://") && text[endAt] === "(") continue;
         const line = text.slice(0, startAt).split("\n").length;
         const key = `${host}\n${file.path}`;
         const before = text.slice(Math.max(0, startAt - 180), startAt);
