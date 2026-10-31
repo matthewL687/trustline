@@ -10,6 +10,7 @@ const formError = document.querySelector("#formError");
 const MAX_FILES = 220;
 const MAX_BYTES = 1_200_000;
 const SKIP = new Set([".git", "node_modules", "vendor", "dist", "build", ".next", "coverage", "target"]);
+const PUBLIC_TLDS = new Set(("com org net edu gov mil int io ai dev app tech xyz info biz me co us uk ca au nz jp de fr es it nl se no fi ch at ru cn in br za tv cloud online site store blog museum aero name pro mobi travel jobs cat asia tel xxx post zip mov music live world design software digital company agency network systems security services solutions academy exchange finance consulting photography media email website today space fun club life news group center studio codes tools support sh io ly gg fm cc ws me ac io gov.uk co.uk org.uk ac.uk com.au net.au org.au co.nz co.jp com.br com.cn com.sg com.mx co.in github") .split(" "));
 const URL_RE = /\b(?:https?:\/\/|s3:\/\/|gs:\/\/)[^\s"'<>`\])}]+/gi;
 const HOST_RE = /(?<![@\w.-])(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}(?::\d+)?(?:\/[^\s"'<>`]*)?/gi;
 
@@ -62,6 +63,7 @@ function refsFromFiles(files) {
         try { parsed = new URL(normalized); } catch { continue; }
         const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
         if (!host.includes(".") || ["example.com", "example.org", "example.net", "localhost"].includes(host) || /\.(png|jpg|jpeg|gif|svg|webp|woff2?)$/i.test(host)) continue;
+        if (!raw.includes("://") && !PUBLIC_TLDS.has(host.split(".").at(-1))) continue;
         const line = text.slice(0, startAt).split("\n").length;
         const key = `${host}\n${file.path}`;
         const before = text.slice(Math.max(0, startAt - 180), startAt);
