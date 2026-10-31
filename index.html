@@ -47,13 +47,13 @@
       </div>
     </main>
   </div>
-  <div class="toast" id="toast" role="status" aria-live="polite"><span>✳</span><div><b>Scan started</b><small>This preview uses sample findings. Run <code>python3 trustline.py .</code> for a live audit.</small></div><button aria-label="Dismiss">×</button></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"><span>✳</span><div><b>Website checker ready</b><small>Enter a public domain to review its online signals.</small></div><button aria-label="Dismiss">×</button></div>
   <dialog class="site-check-dialog" id="siteCheckDialog" aria-labelledby="siteCheckTitle">
     <div class="site-check-head"><div><div class="eyebrow"><span class="eyebrow-line"></span>PUBLIC WEBSITE CHECK</div><h2 id="siteCheckTitle">Check your website</h2><p>Enter a domain to review public DNS, registration, certificate, and HTTPS connection signals.</p></div><button class="site-check-close" type="button" id="closeSiteCheck" aria-label="Close">×</button></div>
     <form id="siteCheckForm" class="site-check-form"><label for="siteUrl">Website address</label><div class="site-check-input-row"><input id="siteUrl" name="siteUrl" type="text" inputmode="url" autocomplete="url" placeholder="https://example.com" required><button class="button button-dark" type="submit" id="siteCheckSubmit">Check site <span>↗</span></button></div><small>Checks the public domain only. No sign-in or terminal required.</small></form>
     <div id="siteCheckStatus" class="site-check-status" role="status" aria-live="polite" hidden></div>
     <section id="siteCheckResults" class="site-check-results" aria-live="polite" hidden><div class="site-result-summary"><span class="site-result-icon">✓</span><div><b id="siteResultDomain"></b><small id="siteResultSummary"></small></div></div><div id="siteResultList" class="site-result-list"></div><p class="site-check-limit">This browser check reviews domain-level public signals. It cannot crawl private pages, inspect source files, or confirm ownership. Some registries may limit browser lookups.</p></section>
   </dialog>
-  <script src="app.js"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>
