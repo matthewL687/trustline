@@ -104,6 +104,18 @@ function escapeHtml(value) { return String(value).replace(/[&<>"']/g, c => ({ "&
 function signalCard(title, value, detail, state = "good") {
   return `<article class="signal-card ${state}"><div class="signal-card-top"><span class="signal-label">${escapeHtml(title.toUpperCase())}</span><span class="signal-value">${state === "good" ? "✓" : state === "review" ? "!" : "·"}</span></div><strong>${escapeHtml(value)}</strong><small>${escapeHtml(detail)}</small></article>`;
 }
+function fallbackAdvice(ref) {
+  const context = `${ref.file} ${ref.context || ""} ${ref.url || ""}`.toLowerCase();
+  if (ref.kind === "Browser script") return "Pin this script to a reviewed version, add Subresource Integrity when the host supports it, and self-host it if you need stable control over what runs in visitors’ browsers.";
+  if (ref.kind === "Browser asset") return "Confirm this asset is still used by the page. Pin or self-host fonts, stylesheets, and other browser-loaded files where practical, and remove stale includes.";
+  if (ref.kind === "Cloud storage") return "Verify the bucket name and owning cloud account. Remove abandoned bucket URLs; for active buckets, restrict write access and serve only the objects this code needs.";
+  if (ref.kind === "Webhook") return "Verify the receiver is still controlled by the intended team, authenticate webhook requests, and rotate any signing secret if the endpoint or owner changed.";
+  if (ref.kind === "Build / deploy") return "Check that this endpoint is still part of the release path. Pin referenced actions, images, and downloads to immutable versions or digests, and remove unused workflow targets.";
+  if (ref.kind === "Documentation") return "Check whether this link is still relevant and points to the intended publisher. Update or remove stale links; avoid relying on documentation links as production dependencies.";
+  if (/webhook|callback|notify/.test(context)) return "Confirm the endpoint is still operated by the expected service, authenticate requests, and rotate any associated credential if ownership changed.";
+  if (/api[_-]?key|token|secret|authorization/.test(context)) return "Confirm this is the intended API host and keep credentials in a secret store. Restrict credentials to the required service and rotate them if the endpoint owner is uncertain.";
+  return "Confirm this hostname is an intentional runtime dependency and is controlled by the expected provider. Remove stale references; for critical services, document an owner and a replacement plan.";
+}
 function renderReport(repoInfo, files, refs, remoteReport = null) {
   const name = `${repoInfo.owner}/${repoInfo.repo}`;
   document.querySelector("#reportDomain").textContent = name;
@@ -111,7 +123,7 @@ function renderReport(repoInfo, files, refs, remoteReport = null) {
   document.querySelector("#checkedAt").textContent = new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
   const inv = document.querySelector("#signalGrid");
   inv.innerHTML = [signalCard("Files reviewed", files.length, "Text files from the default branch"), signalCard("External references", refs.length, "Unique hostname and file pairs"), signalCard("File inventory", remoteReport ? "Server checks" : "Browser mode", remoteReport ? "Current public ownership evidence" : "Some cross-origin checks need the secure service", remoteReport ? "good" : "review")].join("");
-  const ordered = remoteReport?.findings || refs.map(ref => ({ ...ref, severity: "Unranked", score: null, explanation: "Reference inventoried; ownership evidence is unavailable until the Trustline server-side checks are configured.", recommendation: "Confirm the owner and business need. Pin browser-loaded assets and remove references no longer in use.", uncertainty: "No current ownership or takeoverability conclusion was collected." }));
+  const ordered = remoteReport?.findings || refs.map(ref => ({ ...ref, severity: "Unranked", score: null, explanation: `Found in ${ref.file}:${ref.line} and classified as ${ref.kind.toLowerCase()} from its nearby source context. Current ownership and availability evidence is not connected in this report.`, recommendation: fallbackAdvice(ref), uncertainty: "This is source context only; no current DNS, registration, storage, certificate-history, or archive evidence was collected, so no takeoverability conclusion is possible." }));
   const severityOrder = { Critical: 0, High: 1, Medium: 2, Low: 3, Unranked: 4 };
   ordered.sort((a, b) => (severityOrder[a.severity] ?? 4) - (severityOrder[b.severity] ?? 4) || (b.score || 0) - (a.score || 0));
   const list = document.querySelector("#findingList"); list.replaceChildren();
