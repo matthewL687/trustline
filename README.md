@@ -2,7 +2,9 @@
 
 Trustline audits the external trust boundary in a codebase. It inventories outside hostnames and storage URLs, gathers registration and availability evidence, and ranks what deserves a closer look.
 
-The repository includes a static GitHub Pages product site and a Python command-line scanner. The site is an interactive sample dashboard. Run the scanner locally for a live audit; a static Pages site cannot safely hold a model API key or perform server-side repository scans.
+The repository includes a static GitHub Pages product site and a Python command-line scanner. The site is a realistic, interactive sample dashboard. Run the scanner locally for a live audit; a static Pages site cannot safely hold a model API key or perform server-side repository scans.
+
+You can also use **Check a website** on the hosted site without installing or running anything. Enter a public domain to review DNS addresses, CAA certificate policy, DMARC, RDAP registration data, certificate transparency names, and whether the browser can establish an HTTPS connection. The hosted check reviews public domain signals only; browser cross-origin protections prevent a static site from crawling another website's pages or source files.
 
 ## Run a live scan
 
@@ -35,7 +37,7 @@ The integration uses the Meta Model API's OpenAI-compatible chat completions end
 
 ## GitHub Pages
 
-The site is in the repository root. The included workflow publishes it automatically on pushes to `main`. If needed, go to **Settings → Pages** and select **GitHub Actions** as the source.
+The site is in the repository root. To publish it, create a GitHub repository and push this folder, then go to **Settings → Pages** and select **GitHub Actions** as the source. The included workflow publishes the site on pushes to `main`.
 
 The dashboard includes sample findings to show the report design. It does not imply that the displayed example scan was run against your repository. The **Run new scan** button explains how to run a real local scan.
 

@@ -33,7 +33,44 @@ document.querySelector("#searchInput").addEventListener("input",render);
 document.querySelector("#sortButton").addEventListener("click",()=>{descending=!descending;document.querySelector("#sortButton").innerHTML=`${descending?"Priority ↓":"Priority ↑"} <span>⌄</span>`;render()});
 document.querySelector("#viewAll").addEventListener("click",()=>{showAll=true;render();document.querySelector("#findings").scrollIntoView({behavior:"smooth",block:"start"})});
 document.querySelectorAll(".nav-item").forEach(el=>el.addEventListener("click",()=>{document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));el.classList.add("active");if(el.dataset.view!=="overview"){showAll=true;if(el.dataset.view==="alerts")activeFilter="High";else activeFilter="All";document.querySelectorAll(".filter").forEach(f=>f.classList.toggle("active",f.dataset.filter===activeFilter));render();document.querySelector("#findings").scrollIntoView({behavior:"smooth",block:"start"})}}));
-const toast=document.querySelector("#toast");let timer;
-document.querySelector("#scanButton").addEventListener("click",()=>{toast.classList.add("visible");clearTimeout(timer);timer=setTimeout(()=>toast.classList.remove("visible"),6500)});
-toast.querySelector("button").addEventListener("click",()=>toast.classList.remove("visible"));
+const siteDialog=document.querySelector("#siteCheckDialog"),siteForm=document.querySelector("#siteCheckForm"),siteStatus=document.querySelector("#siteCheckStatus"),siteResults=document.querySelector("#siteCheckResults"),siteSubmit=document.querySelector("#siteCheckSubmit");
+document.querySelector("#scanButton").addEventListener("click",()=>{siteDialog.showModal();document.querySelector("#siteUrl").focus()});
+document.querySelector("#closeSiteCheck").addEventListener("click",()=>siteDialog.close());
+siteDialog.addEventListener("click",e=>{if(e.target===siteDialog)siteDialog.close()});
+function siteResult(title,detail,state="ok"){
+  const row=document.createElement("article");row.className=`site-result ${state}`;
+  const mark=document.createElement("span");mark.className="site-result-mark";mark.textContent=state==="ok"?"✓":state==="warn"?"!":"·";
+  const copy=document.createElement("div");const name=document.createElement("b");name.textContent=title;const info=document.createElement("small");info.textContent=detail;copy.append(name,info);row.append(mark,copy);return row;
+}
+async function timedFetch(url,options={},ms=9000){
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),ms);
+  try{return await fetch(url,{...options,signal:controller.signal})}finally{clearTimeout(timer)}
+}
+function dnsValue(data){return data.Answer?.filter(x=>x.type!==5).map(x=>x.data.replace(/\.$/,"")).slice(0,3).join(", ")||"No records returned"}
+async function checkWebsite(raw){
+  let parsed;try{parsed=new URL(/^https?:\/\//i.test(raw.trim())?raw.trim():`https://${raw.trim()}`)}catch{throw new Error("Enter a valid website address, such as example.com.")}
+  const host=parsed.hostname.toLowerCase().replace(/^www\./,"");
+  if(!host.includes(".")||host.length>253||/[^a-z0-9.-]/.test(host)||host.startsWith(".")||host.endsWith("."))throw new Error("Enter a public domain name, such as example.com.");
+  document.querySelector("#siteResultDomain").textContent=host;
+  document.querySelector("#siteResultSummary").textContent="Checking public signals…";
+  const list=document.querySelector("#siteResultList");list.replaceChildren();siteResults.hidden=false;
+  const checks=[
+    (async()=>{const [a,aaaa]=await Promise.all(["A","AAAA"].map(async type=>{const r=await timedFetch(`https://dns.google/resolve?name=${encodeURIComponent(host)}&type=${type}`,{headers:{accept:"application/dns-json"}});if(!r.ok)throw new Error("DNS lookup unavailable");return r.json()}));const answers=[...new Set([...(a.Answer||[]),...(aaaa.Answer||[])].filter(x=>x.type===1||x.type===28).map(x=>x.data))];return siteResult("Web address (DNS)",answers.length?answers.join(" · "):"No IPv4 or IPv6 address was returned.",answers.length?"ok":"warn")})(),
+    (async()=>{const r=await timedFetch(`https://dns.google/resolve?name=${encodeURIComponent(host)}&type=CAA`,{headers:{accept:"application/dns-json"}});if(!r.ok)throw new Error("CAA lookup unavailable");const d=await r.json();return siteResult("Certificate issuer policy (CAA)",d.Answer?.length?dnsValue(d):"No CAA policy found; any certificate authority may be able to issue a certificate.",d.Answer?.length?"ok":"warn")})(),
+    (async()=>{const r=await timedFetch(`https://dns.google/resolve?name=_dmarc.${encodeURIComponent(host)}&type=TXT`,{headers:{accept:"application/dns-json"}});if(!r.ok)throw new Error("DMARC lookup unavailable");const d=await r.json(),record=d.Answer?.find(x=>x.data.toLowerCase().includes("v=dmarc1"));return siteResult("Email spoofing policy (DMARC)",record?record.data.replaceAll('" "',"").replaceAll('"',""):"No DMARC record found for this domain.",record?"ok":"warn")})(),
+    (async()=>{const r=await timedFetch(`https://rdap.org/domain/${encodeURIComponent(host)}`,{headers:{accept:"application/rdap+json, application/json"}});if(r.status===404)return siteResult("Domain registration","No public registration record was returned. Check that you entered the registered domain, not a subdomain.","warn");if(!r.ok)throw new Error("The registry did not return registration data.");const d=await r.json(),expires=d.events?.find(x=>x.eventAction==="expiration")?.eventDate,registrar=d.entities?.find(x=>x.roles?.includes("registrar"))?.vcardArray?.[1]?.find(x=>x[0]==="fn")?.[3];return siteResult("Domain registration",[registrar?`Registrar: ${registrar}`:null,expires?`Expiry: ${new Date(expires).toLocaleDateString()}`:"Registration record found"].filter(Boolean).join(" · "),"ok")})(),
+    (async()=>{const r=await timedFetch(`https://crt.sh/?q=${encodeURIComponent(`%.${host}`)}&output=json`);if(!r.ok)throw new Error("Certificate records unavailable");const d=await r.json(),names=new Set((Array.isArray(d)?d:[]).flatMap(x=>String(x.name_value||"").split("\n").map(n=>n.trim().replace(/^\*\./,""))).filter(Boolean));return siteResult("Public certificates",names.size?`${names.size} name${names.size===1?"":"s"} found in certificate transparency logs. ${[...names].slice(0,4).join(" · ")}`:"No certificate names were returned.",names.size?"ok":"warn")})(),
+    (async()=>{try{const r=await timedFetch(`https://${host}/`,{mode:"no-cors",method:"HEAD"},7000);return siteResult("HTTPS connection",r.type==="opaque"?"The browser connected over HTTPS. Cross-origin rules hide the website's response details.":`HTTPS responded with status ${r.status}.`,"ok")}catch{return siteResult("HTTPS connection","The browser could not complete an HTTPS connection. Check that HTTPS is enabled and the host is reachable.","bad")}})()
+  ];
+  const results=await Promise.all(checks.map(async p=>{try{return await p}catch(e){return siteResult("Lookup unavailable",e.name==="AbortError"?"This public service took too long to respond.":e.message||"A public lookup could not be completed.","warn")}}));
+  list.replaceChildren(...results);
+  const good=results.filter(x=>x.classList.contains("ok")).length;
+  document.querySelector("#siteResultSummary").textContent=`${good} of ${results.length} checks returned useful results · ${new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
+}
+siteForm.addEventListener("submit",async e=>{
+  e.preventDefault();siteSubmit.disabled=true;siteResults.hidden=true;siteStatus.hidden=false;siteStatus.textContent="Checking public DNS, registration, certificates, and HTTPS…";
+  try{await checkWebsite(document.querySelector("#siteUrl").value);siteStatus.hidden=true}
+  catch(error){siteResults.hidden=true;siteStatus.textContent=error.message}
+  finally{siteSubmit.disabled=false}
+});
 render();

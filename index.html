@@ -27,7 +27,7 @@
     <main id="top">
       <header class="topbar"><div class="breadcrumbs"><span>Workspace</span><b>/</b><strong>Overview</strong></div><div class="top-actions"><span class="live-dot"></span><span class="last-scan">Last scan <b>just now</b></span><button class="icon-button" aria-label="Notifications">♧</button><button class="avatar-small">ML</button></div></header>
       <div class="content">
-        <section class="intro"><div><div class="eyebrow"><span class="eyebrow-line"></span>EXTERNAL TRUST AUDIT</div><h1>Know what your code <em>trusts.</em></h1><p>Outside infrastructure can change hands quietly. Trustline finds every reference, checks the evidence, and brings the risks that matter to the surface.</p></div><button class="button button-dark" id="scanButton"><span class="scan-spark">✳</span> Run new scan <span class="button-shortcut">↗</span></button></section>
+        <section class="intro"><div><div class="eyebrow"><span class="eyebrow-line"></span>EXTERNAL TRUST AUDIT</div><h1>Know what your code <em>trusts.</em></h1><p>Outside infrastructure can change hands quietly. Trustline finds every reference, checks the evidence, and brings the risks that matter to the surface.</p></div><button class="button button-dark" id="scanButton"><span class="scan-spark">✳</span> Check a website <span class="button-shortcut">↗</span></button></section>
 
         <section class="summary-grid" aria-label="Audit summary">
           <article class="summary-card"><div class="card-top"><span>REFERENCES FOUND</span><span class="metric-icon icon-blue">⌘</span></div><div class="metric-row"><strong id="totalMetric">12</strong><span class="metric-note">across your codebase</span></div><div class="mini-bars" aria-hidden="true"><i style="height:34%"></i><i style="height:50%"></i><i style="height:43%"></i><i style="height:70%"></i><i style="height:53%"></i><i style="height:83%"></i><i style="height:64%"></i><i style="height:100%"></i><i style="height:76%"></i><i style="height:92%"></i><i style="height:75%"></i><i style="height:100%"></i></div><div class="metric-foot"><span>12 hosts</span><span class="foot-sep">·</span><span>6 reference types</span></div></article>
@@ -48,6 +48,12 @@
     </main>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"><span>✳</span><div><b>Scan started</b><small>This preview uses sample findings. Run <code>python3 trustline.py .</code> for a live audit.</small></div><button aria-label="Dismiss">×</button></div>
+  <dialog class="site-check-dialog" id="siteCheckDialog" aria-labelledby="siteCheckTitle">
+    <div class="site-check-head"><div><div class="eyebrow"><span class="eyebrow-line"></span>PUBLIC WEBSITE CHECK</div><h2 id="siteCheckTitle">Check your website</h2><p>Enter a domain to review public DNS, registration, certificate, and HTTPS connection signals.</p></div><button class="site-check-close" type="button" id="closeSiteCheck" aria-label="Close">×</button></div>
+    <form id="siteCheckForm" class="site-check-form"><label for="siteUrl">Website address</label><div class="site-check-input-row"><input id="siteUrl" name="siteUrl" type="text" inputmode="url" autocomplete="url" placeholder="https://example.com" required><button class="button button-dark" type="submit" id="siteCheckSubmit">Check site <span>↗</span></button></div><small>Checks the public domain only. No sign-in or terminal required.</small></form>
+    <div id="siteCheckStatus" class="site-check-status" role="status" aria-live="polite" hidden></div>
+    <section id="siteCheckResults" class="site-check-results" aria-live="polite" hidden><div class="site-result-summary"><span class="site-result-icon">✓</span><div><b id="siteResultDomain"></b><small id="siteResultSummary"></small></div></div><div id="siteResultList" class="site-result-list"></div><p class="site-check-limit">This browser check reviews domain-level public signals. It cannot crawl private pages, inspect source files, or confirm ownership. Some registries may limit browser lookups.</p></section>
+  </dialog>
   <script src="app.js"></script>
 </body>
 </html>
